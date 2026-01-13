@@ -48,7 +48,7 @@ if (command === 'decode') {
     }
 
     // Extract announce URL
-    const announce = torrent.announce as BencodeValue;
+    const announce = torrent.announce;
     if (!Buffer.isBuffer(announce)) {
       throw new Error(
         'Invalid torrent file: announce field missing or invalid',
