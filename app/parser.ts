@@ -75,20 +75,23 @@ export const parseBuffer = (
 /**
  * handle different bencode types (integer, string, list, dictionary)
  */
-export const parseBencode = (buffer: Buffer): [BencodeValue, number] => {
-  const firstByte = buffer[0];
+export const parseBencode = (
+  buffer: Buffer,
+  position: number = 0,
+): [BencodeValue, number] => {
+  const firstByte = buffer[position];
   if (firstByte === 'i'.charCodeAt(0)) {
-    const [value, position] = parseInteger(buffer, 0);
-    return [value, position];
+    const [value, newPosition] = parseInteger(buffer, position);
+    return [value, newPosition];
   } else if (firstByte >= '0'.charCodeAt(0) && firstByte <= '9'.charCodeAt(0)) {
-    const [value, position] = parseBuffer(buffer, 0);
-    return [value.toString(), position];
+    const [value, newPosition] = parseBuffer(buffer, position);
+    return [value, newPosition]; // Return Buffer as-is
   } else if (firstByte === 'l'.charCodeAt(0)) {
-    const [value, position] = parseList(buffer, 0);
-    return [value, position];
+    const [value, newPosition] = parseList(buffer, position);
+    return [value, newPosition];
   } else if (firstByte === 'd'.charCodeAt(0)) {
-    const [value, position] = parseDictionary(buffer, 0);
-    return [value, position];
+    const [value, newPosition] = parseDictionary(buffer, position);
+    return [value, newPosition];
   } else {
     throw new Error(`Unknown bencode type at position 0`);
   }
