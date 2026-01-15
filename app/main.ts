@@ -1,4 +1,6 @@
+import * as crypto from 'crypto';
 import * as fs from 'fs';
+import { encodeBencode } from './encoder';
 import { parseBencode } from './parser';
 import type { BencodeValue } from './types';
 
@@ -73,7 +75,16 @@ if (command === 'decode') {
     if (typeof length !== 'number') {
       throw new Error('Invalid torrent file: length field missing or invalid');
     }
+
     console.log(`Length: ${length}`);
+
+    // Compute info hash
+    const encodedInfo = encodeBencode(info);
+    const infoHash = crypto
+      .createHash('sha1')
+      .update(encodedInfo as unknown as crypto.BinaryLike)
+      .digest('hex');
+    console.log(`Info Hash: ${infoHash}`);
   } catch (error) {
     console.error((error as Error).message);
   }
