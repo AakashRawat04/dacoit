@@ -85,6 +85,29 @@ if (command === 'decode') {
       .update(encodedInfo as unknown as crypto.BinaryLike)
       .digest('hex');
     console.log(`Info Hash: ${infoHash}`);
+
+    // Extract piece length
+    const pieceLength = info['piece length'];
+    if (typeof pieceLength !== 'number') {
+      throw new Error(
+        'Invalid torrent file: piece length field missing or invalid',
+      );
+    }
+    console.log(`Piece Length: ${pieceLength}`);
+
+    // Extract piece hashes
+    const pieces = info.pieces;
+    if (!Buffer.isBuffer(pieces)) {
+      throw new Error('Invalid torrent file: pieces field missing or invalid');
+    }
+    const numPieces = pieces.length / 20; // SHA-1 hash is 20 bytes
+    console.log(`Piece Hashes:`);
+
+    // List piece hashes in hex
+    for (let i = 0; i < numPieces; i++) {
+      const pieceHash = pieces.subarray(i * 20, (i + 1) * 20);
+      console.log(`${pieceHash.toString('hex')}`);
+    }
   } catch (error) {
     console.error((error as Error).message);
   }
