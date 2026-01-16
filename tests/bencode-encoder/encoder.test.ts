@@ -5,7 +5,7 @@ import {
   encodeDictionary,
   encodeInteger,
   encodeList,
-} from '../../app/encoder';
+} from '../../app/encoding/bencodeEncoder';
 
 describe('encodeInteger', () => {
   test('encodes positive integers', () => {

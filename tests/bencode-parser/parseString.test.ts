@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { parseBuffer, parseInteger } from '../../app/parser';
+import { parseBuffer, parseInteger } from '../../app/parsing/bencodeParser';
 
 describe('parseInteger', () => {
   test('parses positive integers', () => {
