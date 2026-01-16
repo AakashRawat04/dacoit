@@ -5,3 +5,13 @@ export interface BencodeDictionary {
 }
 
 export type BencodeList = BencodeValue[];
+
+export interface TorrentFile {
+  announce: Buffer;
+  info: {
+    length: number;
+    name: Buffer;
+    pieceLength: number;
+    pieces: Buffer;
+  }
+}
