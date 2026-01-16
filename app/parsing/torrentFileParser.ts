@@ -1,6 +1,6 @@
 import fs from 'fs';
-import { parseBencode } from './parser';
-import type { TorrentFile } from './types';
+import type { TorrentFile } from '../types';
+import { parseBencode } from './bencodeParser';
 
 export const parseTorrentFile = (filePath: string): TorrentFile => {
   const fileBuffer = fs.readFileSync(filePath);

@@ -1,4 +1,4 @@
-import type { BencodeValue } from './types';
+import type { BencodeValue } from '../types';
 
 export const parseInteger = (
   buffer: Buffer,

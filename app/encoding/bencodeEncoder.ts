@@ -1,4 +1,4 @@
-import type { BencodeValue } from './types';
+import type { BencodeValue } from '../types';
 
 export const encodeInteger = (value: number): Buffer => {
   if (!Number.isInteger(value)) {
