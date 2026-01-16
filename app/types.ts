@@ -15,3 +15,8 @@ export interface TorrentFile {
     pieces: Buffer;
   }
 }
+
+export interface TrackerResponse {
+  interval: number;
+  peers: Buffer;
+}

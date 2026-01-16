@@ -1,8 +1,9 @@
-import { encodeBencode } from "../encoder";
-import { parseBencode } from "../parser";
-import { parseTorrentFile } from "../torrentFileParser";
-import * as crypto from "crypto";
-import { convertBuffersToStrings } from "../utils";
+import * as crypto from 'crypto';
+import * as fs from 'fs';
+import { parseBencode } from '../parsing/bencodeParser';
+import { parseTorrentFile } from '../parsing/torrentFileParser';
+import { convertBuffersToStrings, extractRawInfoDict } from '../utils';
+import { parseTrackerResponse } from '../parsing/trackerResponseParser';
 
 export const handlePeersCommand = async (filename: string) => {
   try {
@@ -13,23 +14,28 @@ export const handlePeersCommand = async (filename: string) => {
     const announce = torrent.announce;
     const trackerUrl = announce.toString('utf-8');
 
-    // Compute info hash (20 raw bytes)
-    const encodedInfo = encodeBencode(torrent.info);
+    // Calculate info hash from the ORIGINAL bytes in the file
+    // We can't re-encode because bencode encoding isn't guaranteed to be byte-identical
+    const fileBuffer = fs.readFileSync(filename);
+    const rawInfoDict = extractRawInfoDict(fileBuffer);
     const infoHash = crypto
       .createHash('sha1')
-      .update(encodedInfo as unknown as crypto.BinaryLike)
-      .digest('hex');
-    console.log(`Info Hash: ${infoHash}`);
-    // add % before each byte
-    const infoHashPercentEncoded = Array.from(
-      Buffer.from(infoHash, 'hex'),
-    )
+      .update(rawInfoDict as unknown as crypto.BinaryLike)
+      .digest();
+
+    // Percent-encode the raw hash bytes for URL
+    const infoHashPercentEncoded = Array.from(infoHash)
       .map((byte) => `%${byte.toString(16).padStart(2, '0')}`)
       .join('');
-    console.log(`Info Hash (percent-encoded): ${infoHashPercentEncoded}`);
 
-    // Peer ID: must be exactly 20 bytes
-    const peerId = '00112233445566778899';
+    // Peer ID: must be exactly 20 bytes (use random to avoid collisions)
+    const peerId = Array.from({ length: 20 }, () =>
+      Math.floor(Math.random() * 256)
+        .toString(16)
+        .padStart(2, '0'),
+    )
+      .join('')
+      .substring(0, 20);
 
     // Build query string manually (URLSearchParams doesn't handle binary data well)
     const params = [
@@ -43,7 +49,6 @@ export const handlePeersCommand = async (filename: string) => {
     ].join('&');
 
     const fullUrl = `${trackerUrl}?${params}`;
-    console.log(`Requesting tracker: ${fullUrl}`);
 
     // Make request to tracker
     const response = await fetch(fullUrl, { method: 'GET' });
@@ -55,31 +60,15 @@ export const handlePeersCommand = async (filename: string) => {
     // Parse bencode response
     const responseBuffer = Buffer.from(await response.arrayBuffer());
     const [trackerResponse] = parseBencode(responseBuffer, 0);
-
-    if (
-      typeof trackerResponse !== 'object' ||
-      Array.isArray(trackerResponse) ||
-      Buffer.isBuffer(trackerResponse)
-    ) {
-      throw new Error('Invalid tracker response');
-    }
-    console.log('Tracker Response:', convertBuffersToStrings(trackerResponse));
-
-    // Check for failure reason
-    if (trackerResponse['failure reason']) {
-      throw new Error(`Tracker error: ${trackerResponse['failure reason']}`);
-    }
+    const parsedTrackerResponse = parseTrackerResponse(trackerResponse);
 
     // Extract peers (compact format: 6 bytes per peer)
-    const peersValue = trackerResponse.peers;
+    const peersValue = parsedTrackerResponse.peers;
 
     if (!peersValue) {
       // No peers available
       console.log('No peers currently available for this torrent');
-    }
-
-    if (!Buffer.isBuffer(peersValue)) {
-      throw new Error('Invalid peers format: expected Buffer');
+      return; // Exit early
     }
 
     // Parse peers: each peer is 6 bytes (4 for IP, 2 for port)
@@ -91,4 +80,4 @@ export const handlePeersCommand = async (filename: string) => {
   } catch (error) {
     console.error((error as Error).message);
   }
-}
+};
