@@ -13,7 +13,7 @@ export interface TorrentFile {
     name: Buffer;
     pieceLength: number;
     pieces: Buffer;
-  }
+  };
 }
 
 export interface TrackerResponse {

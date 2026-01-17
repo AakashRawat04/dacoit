@@ -1,9 +1,10 @@
 import * as crypto from 'crypto';
 import * as fs from 'fs';
+import { BYTES_PER_PEER, PEER_ID_LENGTH, TRACKER_PORT } from '../constants';
 import { parseBencode } from '../parsing/bencodeParser';
 import { parseTorrentFile } from '../parsing/torrentFileParser';
-import { convertBuffersToStrings, extractRawInfoDict } from '../utils';
 import { parseTrackerResponse } from '../parsing/trackerResponseParser';
+import { extractRawInfoDict } from '../utils';
 
 export const handlePeersCommand = async (filename: string) => {
   try {
@@ -29,19 +30,19 @@ export const handlePeersCommand = async (filename: string) => {
       .join('');
 
     // Peer ID: must be exactly 20 bytes (use random to avoid collisions)
-    const peerId = Array.from({ length: 20 }, () =>
+    const peerId = Array.from({ length: PEER_ID_LENGTH }, () =>
       Math.floor(Math.random() * 256)
         .toString(16)
         .padStart(2, '0'),
     )
       .join('')
-      .substring(0, 20);
+      .substring(0, PEER_ID_LENGTH);
 
     // Build query string manually (URLSearchParams doesn't handle binary data well)
     const params = [
       `info_hash=${infoHashPercentEncoded}`,
       `peer_id=${peerId}`,
-      `port=6881`,
+      `port=${TRACKER_PORT}`,
       `uploaded=0`,
       `downloaded=0`,
       `left=${torrent.info.length}`, // Total file size
@@ -72,7 +73,7 @@ export const handlePeersCommand = async (filename: string) => {
     }
 
     // Parse peers: each peer is 6 bytes (4 for IP, 2 for port)
-    for (let i = 0; i < peersValue.length; i += 6) {
+    for (let i = 0; i < peersValue.length; i += BYTES_PER_PEER) {
       const ip = Array.from(peersValue.subarray(i, i + 4)).join('.');
       const port = peersValue.readUInt16BE(i + 4);
       console.log(`${ip}:${port}`);
