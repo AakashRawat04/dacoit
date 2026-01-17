@@ -1,4 +1,5 @@
 import { handleDecodeCommand } from './commands/decode';
+import { handleHandshakeCommand } from './commands/handshake';
 import { handleInfoCommand } from './commands/info';
 import { handlePeersCommand } from './commands/peers';
 
@@ -14,4 +15,8 @@ if (command === 'decode') {
 } else if (command === 'peers') {
   const filename = args[3];
   await handlePeersCommand(filename);
+} else if (command === 'handshake') {
+  const filename = args[3];
+  const peerAddress = args[4];
+  await handleHandshakeCommand(filename, peerAddress);
 }

@@ -1,7 +1,9 @@
 import * as crypto from 'crypto';
 import * as fs from 'fs';
-import { SHA1_HASH_LENGTH } from '../constants';
-import { parseTorrentFile } from '../parsing/torrentFileParser';
+import {
+  parseInfoPieces,
+  parseTorrentFile,
+} from '../parsing/torrentFileParser';
 import { extractRawInfoDict } from '../utils';
 
 export const handleInfoCommand = (filename: string) => {
@@ -25,18 +27,11 @@ export const handleInfoCommand = (filename: string) => {
     console.log(`Piece Length: ${pieceLength}`);
 
     // Extract piece hashes
-    const pieces = torrent.info.pieces;
-    const numPieces = pieces.length / SHA1_HASH_LENGTH; // SHA-1 hash is 20 bytes
-    console.log(`Piece Hashes:`);
-
-    // List piece hashes in hex
-    for (let i = 0; i < numPieces; i++) {
-      const pieceHash = pieces.subarray(
-        i * SHA1_HASH_LENGTH,
-        (i + 1) * SHA1_HASH_LENGTH,
-      );
-      console.log(`${pieceHash.toString('hex')}`);
-    }
+    const pieces = parseInfoPieces(torrent.info.pieces);
+    console.log('Piece Hashes:');
+    pieces.forEach((pieceHash) => {
+      console.log(`${pieceHash}`);
+    });
   } catch (error) {
     console.error((error as Error).message);
   }

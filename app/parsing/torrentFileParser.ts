@@ -53,3 +53,19 @@ export const parseTorrentFile = (filePath: string): TorrentFile => {
     },
   };
 };
+
+export const parseInfoPieces = (piecesBuffer: Buffer): string[] => {
+  const SHA1_HASH_LENGTH = 20; // SHA-1 hash length in bytes
+  const numPieces = piecesBuffer.length / SHA1_HASH_LENGTH;
+  const pieceHashes: string[] = [];
+
+  for (let i = 0; i < numPieces; i++) {
+    const pieceHash = piecesBuffer.subarray(
+      i * SHA1_HASH_LENGTH,
+      (i + 1) * SHA1_HASH_LENGTH,
+    );
+    pieceHashes.push(pieceHash.toString('hex'));
+  }
+
+  return pieceHashes;
+};

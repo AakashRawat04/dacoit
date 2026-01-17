@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+import { PEER_ID_LENGTH, PEER_ID_PREFIX } from './constants';
 import type { BencodeValue } from './types';
 
 export function convertBuffersToStrings(value: BencodeValue): any {
@@ -90,3 +92,12 @@ export function extractRawInfoDict(buffer: Buffer): Buffer {
 
   throw new Error('Malformed torrent: info dictionary not properly closed');
 }
+
+export const generatePeerId = (): Buffer => {
+  const prefix = PEER_ID_PREFIX;
+  const randomPart = crypto.randomBytes(PEER_ID_LENGTH - prefix.length);
+  return Buffer.concat([
+    Buffer.from(prefix),
+    randomPart,
+  ] as unknown as Uint8Array[]);
+};
