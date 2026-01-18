@@ -1,6 +1,20 @@
 import crypto from 'crypto';
-import { PEER_ID_LENGTH, PEER_ID_PREFIX } from './constants';
+import {
+  BLOCK_SIZE,
+  PEER_ID_LENGTH,
+  PEER_ID_PREFIX,
+  SHA1_HASH_LENGTH,
+} from './constants';
 import type { BencodeValue } from './types';
+
+/**
+ * Represents information about a block within a piece
+ */
+export interface BlockInfo {
+  index: number; // Piece index
+  begin: number; // Byte offset within the piece
+  length: number; // Length of the block in bytes
+}
 
 export function convertBuffersToStrings(value: BencodeValue): any {
   if (Buffer.isBuffer(value)) {
@@ -100,4 +114,96 @@ export const generatePeerId = (): Buffer => {
     Buffer.from(prefix),
     randomPart,
   ] as unknown as Uint8Array[]);
+};
+
+/**
+ * Calculates block information for downloading a piece.
+ *
+ * A piece is divided into blocks of BLOCK_SIZE (16 KB) bytes.
+ * The last block may be smaller if the piece length is not evenly divisible.
+ *
+ * @param pieceIndex - The zero-based index of the piece to download
+ * @param pieceLength - The length of the piece in bytes
+ * @returns Array of BlockInfo objects describing each block to request
+ *
+ * @example
+ * // For a 262144 byte (256 KB) piece:
+ * // Returns 16 blocks: 15 blocks of 16384 bytes + 1 block of 16384 bytes
+ * calculateBlocks(0, 262144);
+ *
+ * @example
+ * // For a 100000 byte piece:
+ * // Returns 7 blocks: 6 blocks of 16384 bytes + 1 block of 1696 bytes
+ * calculateBlocks(0, 100000);
+ */
+export const calculateBlocks = (
+  pieceIndex: number,
+  pieceLength: number,
+): BlockInfo[] => {
+  const blocks: BlockInfo[] = [];
+  let offset = 0;
+
+  while (offset < pieceLength) {
+    const blockLength = Math.min(BLOCK_SIZE, pieceLength - offset);
+
+    blocks.push({
+      index: pieceIndex,
+      begin: offset,
+      length: blockLength,
+    });
+
+    offset += blockLength;
+  }
+
+  return blocks;
+};
+
+/**
+ * Verifies that a downloaded piece matches its expected hash.
+ *
+ * @param pieceData - The complete piece data as a Buffer
+ * @param expectedHash - The expected SHA-1 hash of the piece (20 bytes)
+ * @returns true if the hash matches, false otherwise
+ *
+ * @example
+ * const pieceData = Buffer.concat(allBlocks);
+ * const expectedHash = torrent.info.pieces.subarray(pieceIndex * 20, (pieceIndex + 1) * 20);
+ * if (!verifyPiece(pieceData, expectedHash)) {
+ *   throw new Error('Piece hash mismatch!');
+ * }
+ */
+export const verifyPiece = (
+  pieceData: Buffer,
+  expectedHash: Buffer,
+): boolean => {
+  const actualHash = crypto
+    .createHash('sha1')
+    .update(pieceData as unknown as crypto.BinaryLike)
+    .digest();
+
+  return actualHash.equals(Uint8Array.from(expectedHash));
+};
+
+/**
+ * Gets the expected hash for a specific piece from the torrent info.
+ *
+ * The pieces field in the torrent contains concatenated SHA-1 hashes,
+ * each 20 bytes long. This function extracts the hash for a specific piece.
+ *
+ * @param pieces - The pieces buffer from torrent.info.pieces
+ * @param pieceIndex - The zero-based index of the piece
+ * @returns The 20-byte SHA-1 hash for the specified piece
+ *
+ * @example
+ * const expectedHash = getPieceHash(torrent.info.pieces, 0);
+ */
+export const getPieceHash = (pieces: Buffer, pieceIndex: number): Buffer => {
+  const start = pieceIndex * SHA1_HASH_LENGTH;
+  const end = start + SHA1_HASH_LENGTH;
+
+  if (end > pieces.length) {
+    throw new Error(`Piece index ${pieceIndex} out of range`);
+  }
+
+  return pieces.subarray(start, end);
 };
