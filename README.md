@@ -1,10 +1,6 @@
-<img width="929" height="574" alt="image" src="https://github.com/user-attachments/assets/381740ad-1b0c-48a9-a701-35d084d397af" />
-
 # Dacoit
 
 so i built a BitTorrent client from scratch and honestly it was way more interesting than i expected. turns out downloading files is just fancy socket programming with extra steps.
-
-btw did you like the poster? its actually AI generated(you already know that ik). it gives a genuine dacoit vibe. lol
 
 ## what it does
 
@@ -15,6 +11,16 @@ btw did you like the poster? its actually AI generated(you already know that ik)
 - downloads individual pieces from peers
 - downloads entire files by reusing the same TCP connection like a responsible developer
 - verifies everything with SHA-1 hashes because trust issues
+
+## System Architecture
+<img width="700" height="925" alt="image" src="https://github.com/user-attachments/assets/d38229a3-e17a-4dd4-bd46-fe2b89264d0a" />
+
+## Peer Protocol Handshake Sequence
+<img width="713" height="1049" alt="image" src="https://github.com/user-attachments/assets/f655aad7-6f74-430e-b888-b0ebf3515d98" />
+
+## Message Flow During Piece Download
+<img width="713" height="1049" alt="image" src="https://github.com/user-attachments/assets/2c9664bd-0963-437c-82e9-dbc5b50ef107" />
+
 
 ## the tech stack
 
