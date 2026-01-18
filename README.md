@@ -1,34 +1,83 @@
-[![progress-banner](https://backend.codecrafters.io/progress/bittorrent/950d5df9-9eb9-4fc8-ab5e-540e6d012442)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+<img width="929" height="574" alt="image" src="https://github.com/user-attachments/assets/381740ad-1b0c-48a9-a701-35d084d397af" />
 
-This is a starting point for TypeScript solutions to the
-["Build Your Own BitTorrent" Challenge](https://app.codecrafters.io/courses/bittorrent/overview).
+# Dacoit
 
-In this challenge, you’ll build a BitTorrent client that's capable of parsing a
-.torrent file and downloading a file from a peer. Along the way, we’ll learn
-about how torrent files are structured, HTTP trackers, BitTorrent’s Peer
-Protocol, pipelining and more.
+so i built a BitTorrent client from scratch and honestly it was way more interesting than i expected. turns out downloading files is just fancy socket programming with extra steps.
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+btw did you like the poster? its actually AI generated(you already know that ik). it gives a genuine dacoit vibe. lol
 
-# Passing the first stage
+## what it does
 
-The entry point for your BitTorrent implementation is in `app/main.ts`. Study
-and uncomment the relevant code, and push your changes to pass the first stage:
+- decodes bencoded data because apparently json was too mainstream for 2001
+- parses .torrent files (they're just dictionaries with extra anxiety)
+- talks to HTTP trackers to find peers who have the file
+- does the BitTorrent handshake (basically a secret handshake but for computers)
+- downloads individual pieces from peers
+- downloads entire files by reusing the same TCP connection like a responsible developer
+- verifies everything with SHA-1 hashes because trust issues
 
-```sh
-git commit -am "pass 1st stage" # any msg
-git push origin master
+## the tech stack
+
+- Bun runtime (because life's too short for slow JavaScript)
+- TypeScript (because any types are better than no types)
+- Raw TCP sockets (no libraries, we're doing this the hard way)
+- A concerning amount of Buffer manipulation
+
+## how to use
+
+make sure you have bun installed then:
+
+```bash
+# decode some bencode
+./your_program.sh decode "d3:foo3:bar5:helloi52ee"
+
+# check out a torrent file
+./your_program.sh info sample.torrent
+
+# see who has the file
+./your_program.sh peers sample.torrent
+
+# do a handshake with a peer (yes this is a real command)
+./your_program.sh handshake sample.torrent <peer_ip>:<peer_port>
+
+# download a specific piece
+./your_program.sh download_piece -o /tmp/piece-0 sample.torrent 0
+
+# download the whole file (the main event)
+./your_program.sh download -o /tmp/complete.txt sample.torrent
 ```
 
-Time to move on to the next stage!
+## the architecture
 
-# Stage 2 & beyond
+```
+app/
+├── commands/          # CLI command handlers
+├── encoding/          # turning data into bytes
+├── parsing/           # turning bytes back into data
+├── network/           # PeerConnection class (the star of the show)
+└── main.ts           # where it all begins
+```
 
-Note: This section is for stages 2 and beyond.
+the `PeerConnection` class does the heavy lifting. it maintains a persistent TCP connection and handles all the BitTorrent peer protocol stuff. connection reuse ftw.
 
-1. Ensure you have `bun (1.2)` installed locally
-1. Run `./your_program.sh` to run your program, which is implemented in
-   `app/main.ts`.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
+## things i learned
+
+- BitTorrent is surprisingly elegant for a 20+ year old protocol
+- TCP socket programming is fun when you're not fighting with it
+- "just one more piece" becomes "why is it 3am"
+- promises and socket callbacks are frenemies
+- verifying hashes feels like getting a participation trophy but for bytes
+
+## what's next
+
+version 2 will probably have:
+
+- downloading from multiple peers simultaneously
+- actually being a peer (uploading pieces)
+- magnet links support
+- DHT because centralized trackers are so 2008
+- idk man... lets see
+
+---
+
+if this helps you understand BitTorrent or you just think it's neat, cool. if you find bugs, they're features actually.
