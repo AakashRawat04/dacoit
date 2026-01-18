@@ -5,7 +5,31 @@ import {
   PEER_ID_PREFIX,
   SHA1_HASH_LENGTH,
 } from './constants';
-import type { BencodeValue } from './types';
+import type { BencodeValue, TorrentFile } from './types';
+
+/**
+ * Calculates the actual length of a specific piece.
+ * The last piece may be smaller than the standard piece length.
+ *
+ * @param pieceIndex - Zero-based index of the piece
+ * @param torrentInfo - The info section from the torrent file
+ * @returns The actual length of the piece in bytes
+ */
+export const calculatePieceLength = (
+  pieceIndex: number,
+  torrentInfo: TorrentFile['info'],
+): number => {
+  const standardPieceLength = torrentInfo.pieceLength;
+  const totalFileLength = torrentInfo.length;
+  const totalPieces = Math.ceil(totalFileLength / standardPieceLength);
+
+  // Last piece might be smaller
+  if (pieceIndex === totalPieces - 1) {
+    return totalFileLength - pieceIndex * standardPieceLength;
+  }
+
+  return standardPieceLength;
+};
 
 /**
  * Represents information about a block within a piece

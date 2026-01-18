@@ -1,4 +1,5 @@
 import { handleDecodeCommand } from './commands/decode';
+import { handleDownloadCommand } from './commands/download';
 import { handleDownloadPieceCommand } from './commands/downloadPiece';
 import { handleHandshakeCommand } from './commands/handshake';
 import { handleInfoCommand } from './commands/info';
@@ -42,6 +43,23 @@ if (command === 'decode') {
   }
 
   await handleDownloadPieceCommand(outputPath, torrentFile, pieceIndex);
+} else if (command === 'download') {
+  // Parse arguments: download -o <output_path> <torrent_file>
+  const outputFlagIndex = args.indexOf('-o');
+  if (outputFlagIndex === -1 || !args[outputFlagIndex + 1]) {
+    console.error('Usage: download -o <output_path> <torrent_file>');
+    process.exit(1);
+  }
+
+  const outputPath = args[outputFlagIndex + 1];
+  const torrentFile = args[outputFlagIndex + 2];
+
+  if (!torrentFile) {
+    console.error('Usage: download -o <output_path> <torrent_file>');
+    process.exit(1);
+  }
+
+  await handleDownloadCommand(outputPath, torrentFile);
 } else {
   console.error(`Unknown command: ${command}`);
   process.exit(1);
