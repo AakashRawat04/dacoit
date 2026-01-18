@@ -1,4 +1,8 @@
+<img width="929" height="574" alt="image" src="https://github.com/user-attachments/assets/381740ad-1b0c-48a9-a701-35d084d397af" />
+
 [![progress-banner](https://backend.codecrafters.io/progress/bittorrent/950d5df9-9eb9-4fc8-ab5e-540e6d012442)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+
+
 
 This is a starting point for TypeScript solutions to the
 ["Build Your Own BitTorrent" Challenge](https://app.codecrafters.io/courses/bittorrent/overview).
